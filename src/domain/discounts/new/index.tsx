@@ -1,3 +1,4 @@
+import { Discount } from "@medusajs/medusa"
 import { RouteComponentProps } from "@reach/router"
 import { navigate, PageProps } from "gatsby"
 import {
@@ -11,7 +12,7 @@ import Button from "../../../components/fundamentals/button"
 import Breadcrumb from "../../../components/molecules/breadcrumb"
 import DiscountGeneral from "../../../components/templates/discount-general"
 import DiscountSettings from "../../../components/templates/discount-settings"
-import useToaster from "../../../hooks/use-toaster"
+import useNotification from "../../../hooks/use-notification"
 import { getErrorMessage } from "../../../utils/error-messages"
 import {
   extractProductOptions,
@@ -21,13 +22,16 @@ import { hydrateDiscount } from "../../../utils/hydrate-discount"
 import { getNativeSymbol, persistedPrice } from "../../../utils/prices"
 import { DiscountFormType } from "../types"
 
-type NewProps = RouteComponentProps & PageProps
+type NewProps = RouteComponentProps<{
+  location: { state: { discount?: Discount } }
+}> &
+  PageProps
 
 const New: React.FC<NewProps> = ({ location }) => {
   const { regions } = useAdminRegions()
   const { products } = useAdminProducts()
   const discounts = useAdminCreateDiscount()
-  const toaster = useToaster()
+  const notification = useNotification()
 
   const toDuplicate = location.state?.discount
 
@@ -112,7 +116,7 @@ const New: React.FC<NewProps> = ({ location }) => {
           : discountType === "fixed"
           ? getPersistedPrice(parseFloat(data.rule.value))
           : parseFloat(data.rule.value),
-        type: discountType,
+        type: isFreeShipping ? "free_shipping" : discountType,
         allocation: allocationItem ? "item" : "total",
         valid_for: appliesToAll
           ? undefined
@@ -133,11 +137,11 @@ const New: React.FC<NewProps> = ({ location }) => {
       { ...payload },
       {
         onSuccess: ({ discount }) => {
-          toaster(successMessage, "success")
+          notification("Success", successMessage, "success")
           navigate(`/a/discounts/${discount.id}`)
         },
         onError: (error) => {
-          toaster(getErrorMessage(error), "error")
+          notification("Error", getErrorMessage(error), "error")
         },
       }
     )
@@ -186,7 +190,7 @@ const New: React.FC<NewProps> = ({ location }) => {
         previousRoute="/a/discounts"
       />
       <FormProvider {...methods}>
-        <form>
+        <form onSubmit={(e) => e.preventDefault()}>
           <div className="flex flex-col gap-y-large">
             <DiscountGeneral
               isEdit={false}

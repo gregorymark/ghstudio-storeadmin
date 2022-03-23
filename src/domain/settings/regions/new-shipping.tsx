@@ -10,7 +10,7 @@ import Input from "../../../components/molecules/input"
 import Modal from "../../../components/molecules/modal"
 import Select from "../../../components/molecules/select"
 import CurrencyInput from "../../../components/organisms/currency-input"
-import useToaster from "../../../hooks/use-toaster"
+import useNotification from "../../../hooks/use-notification"
 import { Option } from "../../../types/shared"
 import { getErrorMessage } from "../../../utils/error-messages"
 import fulfillmentProvidersMapper from "../../../utils/fulfillment-providers.mapper"
@@ -33,7 +33,7 @@ const NewShipping = ({
   const [profileOptions, setProfileOptions] = useState<Option[]>([])
   const [selectedProfile, setSelectedProfile] = useState(null)
   const createShippingOption = useAdminCreateShippingOption()
-  const toaster = useToaster()
+  const notification = useNotification()
 
   useEffect(() => {
     register("amount", { required: true })
@@ -95,14 +95,18 @@ const NewShipping = ({
 
     createShippingOption.mutate(payload, {
       onSuccess: () => {
-        toaster("Successfully created shipping option", "success")
+        notification(
+          "Success",
+          "Successfully created shipping option",
+          "success"
+        )
         if (onCreated) {
           onCreated()
         }
         onClick()
       },
       onError: (error) => {
-        toaster(getErrorMessage(error), "error")
+        notification("Error", getErrorMessage(error), "error")
       },
     })
   }
@@ -176,7 +180,11 @@ const NewShipping = ({
                 placeholder="New Shipping Option"
                 className="flex-grow"
               />
-              <CurrencyInput currentCurrency={region.currency_code} readOnly>
+              <CurrencyInput
+                currentCurrency={region.currency_code}
+                readOnly
+                size="small"
+              >
                 <CurrencyInput.AmountInput
                   label="Price"
                   onChange={(v) => handleAmountChange("amount", v)}
@@ -235,6 +243,7 @@ const NewShipping = ({
                   <CurrencyInput
                     currentCurrency={region.currency_code}
                     readOnly
+                    size="small"
                   >
                     <CurrencyInput.AmountInput
                       label="Price"
@@ -250,6 +259,7 @@ const NewShipping = ({
                   <CurrencyInput
                     currentCurrency={region.currency_code}
                     readOnly
+                    size="small"
                   >
                     <CurrencyInput.AmountInput
                       label="Price"
